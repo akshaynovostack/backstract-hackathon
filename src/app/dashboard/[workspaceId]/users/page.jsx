@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
-import Button from "@/components/ui/Button";
-import UserList from "@/components/users/UserList";
-import UserModal from "@/components/users/UserModal";
+import Button from "../../../../components/ui/Button";
+import UserList from "../../../../components/users/UserList";
+import UserModal from "../../../../components/users/UserModal";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);

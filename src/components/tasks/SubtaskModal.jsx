@@ -11,7 +11,7 @@ import {
   File,
 } from "lucide-react";
 import Modal from "../ui/Modal";
-import { tempData } from "@/lib/tempData";
+import { tempData } from "../../lib/tempData";
 
 export default function SubtaskModal({
   isOpen,

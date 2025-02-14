@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import api from "@/lib/axios";
+import api from "../lib/axios";
 
 export function useTasks() {
   const [tasks, setTasks] = useState([]);

@@ -14,7 +14,7 @@ import {
   File,
 } from "lucide-react";
 import Modal from "../ui/Modal";
-import { tempData } from "@/lib/tempData";
+import { tempData } from "../../lib/tempData";
 import SubtaskModal from "./SubtaskModal";
 import { toast } from "react-hot-toast";
 

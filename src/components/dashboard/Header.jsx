@@ -1,5 +1,5 @@
 import { Search, Bell, Settings, User, Plus } from "lucide-react";
-import Button from "@/components/ui/Button";
+import Button from "../ui/Button";
 
 export default function Header() {
   return (
