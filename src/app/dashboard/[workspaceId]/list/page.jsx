@@ -1,5 +1,5 @@
 "use client";
-import TaskList from "@/components/tasks/TaskList";
+import TaskList from "../../../../components/tasks/TaskList";
 
 export default function ListView() {
   return (

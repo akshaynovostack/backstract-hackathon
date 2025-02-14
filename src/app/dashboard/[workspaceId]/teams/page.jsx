@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
-import Button from "@/components/ui/Button";
-import TeamList from "@/components/teams/TeamList";
-import TeamModal from "@/components/teams/TeamModal";
+import Button from "../../../../components/ui/Button";
+import TeamList from "../../../../components/teams/TeamList";
+import TeamModal from "../../../../components/teams/TeamModal";
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState([]);

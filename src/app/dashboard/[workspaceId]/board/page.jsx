@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import TaskBoard from "@/components/tasks/TaskBoard";
-import Button from "@/components/ui/Button";
-import TaskModal from "@/components/tasks/TaskModal";
+import TaskBoard from "../../../../components/tasks/TaskBoard";
+import Button from "../../../../components/ui/Button";
+import TaskModal from "../../../../components/tasks/TaskModal";
 
 const BASE_URL =
   "https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api";
