@@ -114,6 +114,50 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
     }
   }, [isOpen, task?.id]);
 
+  useEffect(() => {
+    const fetchAttachments = async () => {
+      console.log("Fetching attachments for task:", task?.id); // Debug log
+
+      if (!task?.id) {
+        console.log("No task ID available, skipping fetch"); // Debug log
+        return;
+      }
+
+      try {
+        console.log("Making attachments API request..."); // Debug log
+        const response = await fetch(
+          "https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/task_attachments/",
+          {
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Received attachments data:", data); // Debug log
+
+        const taskAttachments = data.task_attachments_all.filter(
+          (attachment) => attachment.task_id === task.id
+        );
+        console.log("Filtered attachments for this task:", taskAttachments); // Debug log
+
+        setAttachments(taskAttachments);
+      } catch (error) {
+        console.error("Failed to fetch attachments:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchAttachments();
+    }
+  }, [isOpen, task?.id]);
+
   // Memoize filtered tags
   const availableTags = useMemo(() => {
     return tempData.tags.filter((tag) => !selectedTagIds.includes(tag.id));
@@ -223,35 +267,31 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
     );
   };
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files);
 
-    // Create new attachment objects
+    // Here you would typically upload the files to your server
+    // and get back the URLs. For now, we'll create temporary objects
     const newAttachments = files.map((file) => ({
-      id: Date.now() + Math.random(), // Temporary ID
+      id: Date.now() + Math.random(),
       task_id: task.id,
-      file_name: file.name,
-      file_size: formatFileSize(file.size),
-      file_type: file.type,
-      uploaded_by: tempData.users[0].id,
-      uploaded_at: new Date().toISOString(),
-      file: file, // Store the actual file object
-      url: URL.createObjectURL(file), // Create temporary URL for preview
+      url: URL.createObjectURL(file), // Temporary URL
+      created_by: tempData.users[0].id, // You might want to get the actual user ID
+      created_at: new Date().toISOString(),
     }));
 
     setAttachments([...attachments, ...newAttachments]);
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
+  const handleRemoveAttachment = async (attachmentId) => {
+    try {
+      // Here you would typically make an API call to delete the attachment
+      // await fetch(`your-api-endpoint/${attachmentId}`, { method: 'DELETE' });
 
-  const handleRemoveAttachment = (attachmentId) => {
-    setAttachments(attachments.filter((att) => att.id !== attachmentId));
+      setAttachments(attachments.filter((att) => att.id !== attachmentId));
+    } catch (error) {
+      console.error("Failed to remove attachment:", error);
+    }
   };
 
   const getFileIcon = (fileType) => {
@@ -499,27 +539,29 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
             className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl">
-                {getFileIcon(attachment.file_type)}
-              </span>
+              <File size={20} className="text-gray-500" />
               <div>
-                <p className="font-medium">{attachment.file_name}</p>
+                <p className="font-medium">
+                  {attachment.url.split("/").pop()}{" "}
+                  {/* Extract filename from URL */}
+                </p>
                 <p className="text-sm text-gray-500">
-                  {attachment.file_size} •{" "}
-                  {new Date(attachment.uploaded_at).toLocaleDateString()}
+                  Added on{" "}
+                  {new Date(attachment.created_at).toLocaleDateString()}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => window.open(attachment.url, "_blank")}
+              <a
+                href={attachment.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-1 hover:bg-gray-200 rounded"
                 title="Download"
               >
                 <Download size={16} />
-              </button>
+              </a>
               <button
                 type="button"
                 onClick={() => handleRemoveAttachment(attachment.id)}
