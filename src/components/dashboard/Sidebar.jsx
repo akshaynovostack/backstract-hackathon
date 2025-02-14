@@ -56,7 +56,7 @@ export default function Sidebar() {
     <div className="w-64 bg-white border-r h-screen flex flex-col">
       {/* Logo Section */}
       <div className="p-4 border-b">
-        <h1 className="text-xl font-bold">Task Manager</h1>
+        <h1 className="text-xl font-bold">Dijkstra Dynamos</h1>
       </div>
 
       {/* Navigation */}
