@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import TaskBoard from "@/components/tasks/TaskBoard";
 import Button from "@/components/ui/Button";
+import TaskModal from "@/components/tasks/TaskModal";
 
 const BASE_URL =
   "https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api";
@@ -13,6 +14,7 @@ export default function BoardView() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([fetchTasks(), fetchUsers(), fetchTeams()])
@@ -128,7 +130,10 @@ export default function BoardView() {
     <div className="h-full flex flex-col">
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold">Board View</h1>
-        <Button className="flex items-center gap-2">
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setIsModalOpen(true)}
+        >
           <Plus size={16} />
           Add Task
         </Button>
@@ -141,6 +146,19 @@ export default function BoardView() {
           onTaskMove={handleTaskMove}
         />
       </div>
+
+      {isModalOpen && (
+        <TaskModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          users={users}
+          teams={teams}
+          onTaskCreated={() => {
+            setIsModalOpen(false);
+            fetchTasks();
+          }}
+        />
+      )}
     </div>
   );
 }

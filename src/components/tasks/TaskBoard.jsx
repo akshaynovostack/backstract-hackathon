@@ -175,6 +175,7 @@ export default function TaskBoard({ tasks, users, teams, onTaskMove }) {
           task={selectedTask}
           users={users}
           teams={teams}
+          isOpen={!!selectedTask}
           onClose={() => setSelectedTask(null)}
         />
       )}

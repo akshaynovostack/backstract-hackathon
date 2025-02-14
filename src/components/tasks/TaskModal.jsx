@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo, Fragment } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   X,
   MessageSquare,
@@ -13,13 +13,13 @@ import {
   Download,
   File,
 } from "lucide-react";
+import Modal from "../ui/Modal";
 import { tempData } from "@/lib/tempData";
 import SubtaskModal from "./SubtaskModal";
 import { toast } from "react-hot-toast";
-import Modal from "../ui/Modal";
-import { Dialog, Transition } from "@headlessui/react";
 
-const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
+const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
+  console.log("isOpen", isOpen);
   const [activeTab, setActiveTab] = useState("details");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -44,8 +44,9 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
   const [selectedSubtask, setSelectedSubtask] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
-
   useEffect(() => {
+    console.log("Modal isOpen:", isOpen);
+    console.log("Task data:", task);
     if (task) {
       setFormData({
         ...task,
@@ -65,7 +66,7 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
 
       setAttachments(task.attachments || []);
     }
-  }, [task]);
+  }, [isOpen, task]);
 
   // Memoize filtered tags
   const availableTags = useMemo(() => {
@@ -205,16 +206,6 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
     if (fileType.includes("word")) return "📝";
     if (fileType.includes("sheet")) return "📊";
     return "📎";
-  };
-
-  const getUserName = (userId) => {
-    const user = users.find((u) => u.user_id === userId);
-    return user ? user.name : "Unassigned";
-  };
-
-  const getTeamName = (teamId) => {
-    const team = teams.find((t) => t.id === teamId);
-    return team ? team.name : "No Team";
   };
 
   const renderTagsSection = () => (
@@ -559,14 +550,11 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
                   Assignee
                 </label>
                 <select
-                  className={`mt-1 block w-full rounded-md border px-3 py-2 ${
-                    errors.assigned_to ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
                   value={formData.assigned_to}
-                  onChange={(e) => {
-                    setFormData({ ...formData, assigned_to: e.target.value });
-                    setErrors({ ...errors, assigned_to: null });
-                  }}
+                  onChange={(e) =>
+                    setFormData({ ...formData, assigned_to: e.target.value })
+                  }
                 >
                   <option value="">Select Assignee</option>
                   {tempData.users.map((user) => (
@@ -575,11 +563,6 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
                     </option>
                   ))}
                 </select>
-                {errors.assigned_to && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.assigned_to}
-                  </p>
-                )}
               </div>
 
               <div>
@@ -587,17 +570,11 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
                   Status
                 </label>
                 <select
-                  className={`mt-1 block w-full rounded-md border px-3 py-2 ${
-                    errors.list_status_id ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
                   value={formData.list_status_id}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      list_status_id: e.target.value,
-                    });
-                    setErrors({ ...errors, list_status_id: null });
-                  }}
+                  onChange={(e) =>
+                    setFormData({ ...formData, list_status_id: e.target.value })
+                  }
                 >
                   <option value="">Select Status</option>
                   {tempData.list_status.map((status) => (
@@ -606,11 +583,6 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
                     </option>
                   ))}
                 </select>
-                {errors.list_status_id && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.list_status_id}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -664,128 +636,46 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
     }
   };
 
-  if (!task) return null;
-
   return (
-    <Transition appear show={true} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <div className="flex justify-between items-start mb-4">
-                  <Dialog.Title as="h2" className="text-xl font-semibold">
-                    {task.title}
-                  </Dialog.Title>
-                  <button
-                    onClick={onClose}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700">
-                      Description
-                    </h3>
-                    <p className="mt-1 text-gray-600">{task.description}</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700">
-                        Assigned To
-                      </h3>
-                      <p className="mt-1 text-gray-600">
-                        {getUserName(task.assigned_to)}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700">
-                        Assigned By
-                      </h3>
-                      <p className="mt-1 text-gray-600">
-                        {getUserName(task.assigned_by)}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700">
-                        Team
-                      </h3>
-                      <p className="mt-1 text-gray-600">
-                        {getTeamName(task.team_id)}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700">
-                        Priority
-                      </h3>
-                      <span
-                        className={`mt-1 inline-block px-2 py-1 rounded text-sm ${
-                          task.priority === "high"
-                            ? "bg-red-100 text-red-800"
-                            : task.priority === "medium"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {task.priority}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700">
-                        Status
-                      </h3>
-                      <p className="mt-1 text-gray-600">
-                        {task.list_status || "Unassigned"}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700">
-                        Due Date
-                      </h3>
-                      <p className="mt-1 text-gray-600">
-                        {new Date(task.due_date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700">
-                        Time Estimation
-                      </h3>
-                      <p className="mt-1 text-gray-600">
-                        {task.time_estimation} mins
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      {console.log("Rendering modal, isOpen:", isOpen)}
+      <div className="flex flex-col h-[80vh]">
+        <div className="flex justify-between items-center p-4 border-b">
+          <div className="flex gap-4">
+            {["details", "subtasks", "comments", "attachments"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1 rounded ${
+                  activeTab === tab
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
           </div>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <X size={20} />
+          </button>
         </div>
-      </Dialog>
-    </Transition>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {renderTabContent()}
+
+            <button
+              type="submit"
+              className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Updating..." : "Update Task"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </Modal>
   );
 };
 
