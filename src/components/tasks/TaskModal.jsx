@@ -44,6 +44,8 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
   const [selectedSubtask, setSelectedSubtask] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
+  const [comments, setComments] = useState([]);
+
   useEffect(() => {
     console.log("Modal isOpen:", isOpen);
     console.log("Task data:", task);
@@ -67,6 +69,50 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
       setAttachments(task.attachments || []);
     }
   }, [isOpen, task]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      console.log("Fetching comments for task:", task?.id); // Debug log
+
+      if (!task?.id) {
+        console.log("No task ID available, skipping fetch"); // Debug log
+        return;
+      }
+
+      try {
+        console.log("Making API request..."); // Debug log
+        const response = await fetch(
+          "https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/task_comments/",
+          {
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Received comments data:", data); // Debug log
+
+        const taskComments = data.task_comments_all.filter(
+          (comment) => comment.task_id === task.id
+        );
+        console.log("Filtered comments for this task:", taskComments); // Debug log
+
+        setComments(taskComments);
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchComments();
+    }
+  }, [isOpen, task?.id]);
 
   // Memoize filtered tags
   const availableTags = useMemo(() => {
@@ -125,22 +171,30 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
     }));
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
     const newCommentObj = {
       id: Date.now(),
-      comment: newComment,
-      comment_by: tempData.users[0].name,
-      created_at: new Date().toISOString(),
       task_id: task.id,
+      comment: newComment,
+      comment_by: tempData.users[0].id, // You might want to get the actual user ID
+      created_at: new Date().toISOString(),
     };
 
-    setFormData((prev) => ({
-      ...prev,
-      comments: [...prev.comments, newCommentObj],
-    }));
-    setNewComment("");
+    try {
+      // You'll need to implement the POST request to add the comment
+      // const response = await fetch('your-api-endpoint', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(newCommentObj),
+      // });
+
+      setComments((prevComments) => [...prevComments, newCommentObj]);
+      setNewComment("");
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+    }
   };
 
   const handleAddSubtask = () => {
@@ -254,9 +308,9 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate }) => {
     <div className="mt-6">
       <h3 className="text-lg font-medium mb-4">Comments</h3>
       <div className="space-y-4">
-        {formData.comments.map((comment) => (
+        {comments.map((comment) => (
           <div key={comment.id} className="bg-gray-50 p-3 rounded">
-            <div className="flex justify-between items-center text-sm">
+            <div className="flex justify-between text-sm">
               <span className="font-medium text-blue-600">
                 {comment.comment_by}
               </span>

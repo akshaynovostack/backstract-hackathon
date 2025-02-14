@@ -35,10 +35,12 @@ export default function SubtaskModal({
     comments: [],
   });
 
+  const [activeTab, setActiveTab] = useState("details");
   const [newComment, setNewComment] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     if (subtask) {
@@ -56,6 +58,48 @@ export default function SubtaskModal({
       setAttachments(subtask.attachments || []);
     }
   }, [subtask, parentTask]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      console.log("Fetching comments for subtask:", subtask?.id);
+
+      if (!subtask?.id) {
+        console.log("No subtask ID available, skipping fetch");
+        return;
+      }
+
+      try {
+        console.log("Making API request...");
+        const response = await fetch(
+          "https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/task_comments/",
+          {
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Received comments data:", data);
+
+        const taskComments = data.task_comments_all.filter(
+          (comment) => comment.task_id === subtask.id
+        );
+        console.log("Filtered comments for this task:", taskComments);
+
+        setComments(taskComments);
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
+      }
+    };
+
+    fetchComments();
+  }, [subtask?.id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,22 +120,30 @@ export default function SubtaskModal({
     }
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
     const newCommentObj = {
       id: Date.now(),
-      comment: newComment,
-      comment_by: tempData.users[0].name,
-      created_at: new Date().toISOString(),
       task_id: subtask.id,
+      comment: newComment,
+      comment_by: tempData.users[0].id,
+      created_at: new Date().toISOString(),
     };
 
-    setFormData((prev) => ({
-      ...prev,
-      comments: [...prev.comments, newCommentObj],
-    }));
-    setNewComment("");
+    try {
+      // You'll need to implement the POST request to add the comment
+      // const response = await fetch('your-api-endpoint', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(newCommentObj),
+      // });
+
+      setComments((prevComments) => [...prevComments, newCommentObj]);
+      setNewComment("");
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+    }
   };
 
   const handleFileSelect = (e) => {
@@ -204,20 +256,61 @@ export default function SubtaskModal({
     </div>
   );
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <div className="flex flex-col h-[80vh]">
-        <div className="flex justify-between items-center p-4 border-b">
-          <div>
-            <h2 className="text-xl font-semibold">Subtask Details</h2>
-            <p className="text-sm text-gray-500">Parent: {parentTask?.title}</p>
+  const renderCommentsSection = () => (
+    <div className="mt-6">
+      <h3 className="text-lg font-medium mb-4">Comments</h3>
+      <div className="space-y-4">
+        {comments.map((comment) => (
+          <div key={comment.id} className="bg-gray-50 p-3 rounded">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-blue-600">
+                {comment.comment_by}
+              </span>
+              <span className="text-gray-500">
+                {new Date(comment.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+            <p className="mt-2 text-gray-700">{comment.comment}</p>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X size={20} />
+        ))}
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            className="flex-1 rounded-md border border-gray-300 px-3 py-2"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment..."
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleAddComment();
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleAddComment}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+            disabled={!newComment.trim()}
+          >
+            Comment
           </button>
         </div>
+      </div>
+    </div>
+  );
 
-        <div className="flex-1 overflow-y-auto p-4">
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "details":
+        return (
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
@@ -282,7 +375,7 @@ export default function SubtaskModal({
                   }
                 >
                   <option value="">Select Assignee</option>
-                  {tempData.users_all.map((user) => (
+                  {tempData.tasks.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name}
                     </option>
@@ -402,60 +495,39 @@ export default function SubtaskModal({
               {subtask ? "Update Subtask" : "Create Subtask"}
             </button>
           </form>
+        );
+      case "comments":
+        return renderCommentsSection();
+      default:
+        return null;
+    }
+  };
 
-          {/* Comments Section */}
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-4">Comments</h3>
-            <div className="space-y-4">
-              {formData.comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 p-3 rounded">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium text-blue-600">
-                      {comment.comment_by}
-                    </span>
-                    <span className="text-gray-500">
-                      {new Date(comment.created_at).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-gray-700">{comment.comment}</p>
-                </div>
-              ))}
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-2"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment..."
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleAddComment();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddComment}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-                  disabled={!newComment.trim()}
-                >
-                  Comment
-                </button>
-              </div>
-            </div>
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <div className="flex flex-col h-[80vh]">
+        <div className="flex justify-between items-center p-4 border-b">
+          <div className="flex gap-4">
+            {["details", "comments"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1 rounded ${
+                  activeTab === tab
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
           </div>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <X size={20} />
+          </button>
         </div>
+
+        <div className="flex-1 overflow-y-auto p-4">{renderTabContent()}</div>
       </div>
     </Modal>
   );
