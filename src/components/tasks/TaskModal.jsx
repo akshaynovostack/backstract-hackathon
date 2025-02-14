@@ -19,7 +19,7 @@ import { toast } from "react-hot-toast";
 import Modal from "../ui/Modal";
 import { Dialog, Transition } from "@headlessui/react";
 
-const TaskModal = ({ isOpen, onClose, task, onUpdate, users }) => {
+const TaskModal = ({ isOpen, onClose, task, onUpdate, users, teams }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -210,6 +210,11 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users }) => {
   const getUserName = (userId) => {
     const user = users.find((u) => u.user_id === userId);
     return user ? user.name : "Unassigned";
+  };
+
+  const getTeamName = (teamId) => {
+    const team = teams.find((t) => t.id === teamId);
+    return team ? team.name : "No Team";
   };
 
   const renderTagsSection = () => (
@@ -723,6 +728,14 @@ const TaskModal = ({ isOpen, onClose, task, onUpdate, users }) => {
                       </h3>
                       <p className="mt-1 text-gray-600">
                         {getUserName(task.assigned_by)}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700">
+                        Team
+                      </h3>
+                      <p className="mt-1 text-gray-600">
+                        {getTeamName(task.team_id)}
                       </p>
                     </div>
                     <div>

@@ -10,11 +10,12 @@ const BASE_URL =
 export default function BoardView() {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    Promise.all([fetchTasks(), fetchUsers()])
+    Promise.all([fetchTasks(), fetchUsers(), fetchTeams()])
       .then(() => setLoading(false))
       .catch((err) => {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -48,6 +49,20 @@ export default function BoardView() {
 
     const data = await response.json();
     setUsers(data.users_all);
+  };
+
+  const fetchTeams = async () => {
+    const response = await fetch(`${BASE_URL}/teams/`, {
+      headers: {
+        accept: "application/json",
+        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+      },
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch teams");
+
+    const data = await response.json();
+    setTeams(data.teams_all);
   };
 
   const updateTask = async (taskId, newStatus) => {
@@ -119,7 +134,12 @@ export default function BoardView() {
         </Button>
       </div>
       <div className="flex-1 overflow-x-auto">
-        <TaskBoard tasks={tasks} users={users} onTaskMove={handleTaskMove} />
+        <TaskBoard
+          tasks={tasks}
+          users={users}
+          teams={teams}
+          onTaskMove={handleTaskMove}
+        />
       </div>
     </div>
   );

@@ -8,13 +8,16 @@ export default function TeamList({ teams, onRefresh }) {
 
   const handleEditTeam = async (teamData) => {
     try {
-      const response = await fetch(`/api/teams/${teamData.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(teamData),
-      });
+      const response = await fetch(
+        `https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/teams/${teamData.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(teamData),
+        }
+      );
 
       if (response.ok) {
         onRefresh();
@@ -29,9 +32,12 @@ export default function TeamList({ teams, onRefresh }) {
     if (!confirm("Are you sure you want to delete this team?")) return;
 
     try {
-      const response = await fetch(`/api/teams/${teamId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/teams/${teamId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         onRefresh();

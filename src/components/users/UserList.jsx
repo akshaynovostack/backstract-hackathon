@@ -48,7 +48,7 @@ export default function UserList({ users, teams, onRefresh }) {
   };
 
   const getTeamName = (teamId) => {
-    const team = teams.find((t) => t.id === teamId);
+    const team = teams?.find((t) => t.id === teamId);
     return team ? team.name : "No Team";
   };
 

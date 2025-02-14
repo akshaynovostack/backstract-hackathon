@@ -11,7 +11,7 @@ export default function UserSelector({ onSelect, selectedUserId, teamId }) {
     const fetchUsers = async () => {
       try {
         const url = teamId
-          ? `/api/teams/${teamId}/users`
+          ? `https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/teams/${teamId}/users`
           : "https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/users";
         const response = await fetch(url);
         const data = await response.json();

@@ -10,9 +10,11 @@ export default function TeamSelector({ onSelect, selectedTeamId }) {
     // Fetch teams from your API
     const fetchTeams = async () => {
       try {
-        const response = await fetch("/api/teams");
+        const response = await fetch(
+          "https://cc1fbde45ead-in-south-01.backstract.io/lucid-jang-c1c0cae4eaba11ef8e440242ac12000577/api/teams"
+        );
         const data = await response.json();
-        setTeams(data);
+        setTeams(data.teams_all);
       } catch (error) {
         console.error("Error fetching teams:", error);
       } finally {

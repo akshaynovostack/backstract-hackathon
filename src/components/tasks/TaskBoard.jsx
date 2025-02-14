@@ -4,7 +4,7 @@ import TaskColumn from "./TaskColumn";
 import { useState } from "react";
 import TaskModal from "./TaskModal";
 
-export default function TaskBoard({ tasks, users, onTaskMove }) {
+export default function TaskBoard({ tasks, users, teams, onTaskMove }) {
   const [selectedTask, setSelectedTask] = useState(null);
 
   // Get unique list statuses from tasks
@@ -29,6 +29,11 @@ export default function TaskBoard({ tasks, users, onTaskMove }) {
   const getUserName = (userId) => {
     const user = users.find((u) => u.user_id === userId);
     return user ? user.name : "Unassigned";
+  };
+
+  const getTeamName = (teamId) => {
+    const team = teams.find((t) => t.id === teamId);
+    return team ? team.name : "No Team";
   };
 
   const getInitials = (name) => {
@@ -89,6 +94,7 @@ export default function TaskBoard({ tasks, users, onTaskMove }) {
             {columnTasks.map((task) => {
               const assignedTo = getUserName(task.assigned_to);
               const assignedBy = getUserName(task.assigned_by);
+              const teamName = getTeamName(task.team_id);
 
               return (
                 <div
@@ -138,6 +144,12 @@ export default function TaskBoard({ tasks, users, onTaskMove }) {
 
                     <div className="flex flex-col gap-1 text-xs text-gray-500">
                       <div className="flex items-center justify-between">
+                        <span>Team:</span>
+                        <span className="font-medium text-gray-700">
+                          {teamName}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
                         <span>Assigned by:</span>
                         <span className="font-medium text-gray-700">
                           {assignedBy}
@@ -162,6 +174,7 @@ export default function TaskBoard({ tasks, users, onTaskMove }) {
         <TaskModal
           task={selectedTask}
           users={users}
+          teams={teams}
           onClose={() => setSelectedTask(null)}
         />
       )}
